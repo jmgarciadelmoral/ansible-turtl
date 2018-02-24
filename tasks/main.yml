@@ -1,0 +1,54 @@
+- name: install dependencies
+  package:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - wget
+    - curl 
+    - libtool 
+    - subversion 
+    - make 
+    - automake 
+    - autogen
+    - git
+    - clisp
+
+  tags: dependencies
+
+- name: install libuv
+  get_url: 
+    url: https://dist.libuv.org/dist/v1.18.0/libuv-v1.18.0.tar.gz
+    dest: /tmp
+ 
+- name: uncompress libuv
+  unarchive:
+    src: /tmp/libuv-v1.18.0.tar.gz
+    dest: /tmp
+    remote_src: true
+
+- name: install libuv
+  shell: |
+    cd /tmp/libuv-v1.18.0
+    sh autogen.sh
+    ./configure
+    make
+    make install
+    ldconfig
+
+- name: get turtl
+  git:
+    repo: https://github.com/turtl/api.git
+    dest: /opt/turtl
+
+- name: setup config
+  shell: |
+    cd /opt/turtl
+    cp config/config.default.lisp config/config.lisp
+  args:
+    creates: /opt/turtl/config/config.lisp
+
+- name: turtl user
+  user: 
+    name: turtl
+    state: present
+
